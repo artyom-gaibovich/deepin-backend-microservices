@@ -37,7 +37,10 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["apps/deepin-backend-microservices-e2e/**/*"]
+      "exclude": [
+        "apps/deepin-backend-microservices-e2e/**/*",
+        "apps/deepin-backend-admin-e2e/**/*"
+      ]
     }
   ]
 }
