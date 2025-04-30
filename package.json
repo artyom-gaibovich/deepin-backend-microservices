@@ -2,7 +2,10 @@
   "name": "@deepin-backend-microservices/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev": "npx nx serve deepin-backend-admin",
+    "dev:inspect": "nodemon -e ts,json --exec node --inspect=localhost:9222 -r ts-node/register apps/deepin-backend-admin/src/main.ts"
+  },
   "private": true,
   "dependencies": {
     "@nestjs/common": "^10.0.2",
@@ -44,6 +47,7 @@
     "eslint-config-prettier": "^10.0.0",
     "jest": "^29.7.0",
     "jest-environment-node": "^29.7.0",
+    "nodemon": "^3.1.10",
     "nx": "20.8.1",
     "prettier": "^2.6.2",
     "prisma": "^6.7.0",
