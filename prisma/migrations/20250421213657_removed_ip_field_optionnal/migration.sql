@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Proxy" ALTER COLUMN "ip" DROP NOT NULL;

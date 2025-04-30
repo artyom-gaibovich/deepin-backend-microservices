@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Abonent {
+  id           String           @id @default(uuid())
+  email        String           @unique
+  passwordHash String
+  refreshToken String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime?        @updatedAt
+  proxies      ProxyToAbonent[]
+
+  @@map("abonents")
+}
+
+model ProjectCreeds {
+  id             String           @id @default(uuid())
+  title          String?
+  credentials    Json?
+  ProxyToAbonent ProxyToAbonent[]
+
+  @@map("project_creeds")
+}
+
+model Proxy {
+  id        String           @id @default(uuid())
+  ip        String?
+  port      Int?
+  protocol  String?
+  host      String?
+  is_active Boolean?
+  username  String?
+  password  String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime?        @updatedAt
+  abonents  ProxyToAbonent[]
+
+  @@map("proxies")
+}
+
+model ProxyToAbonent {
+  id        String  @id @default(uuid())
+  proxy     Proxy   @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+  proxyId   String
+  abonent   Abonent @relation(fields: [abonentId], references: [id], onDelete: Cascade)
+  abonentId String
+
+  project         ProjectCreeds @relation(fields: [projectCreedsId], references: [id])
+  projectCreedsId String
+
+  status    Boolean?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  Socket    Socket[]
+
+  @@unique([proxyId, abonentId, projectCreedsId], name: "proxyId_abonentId_projectCreedsId")
+  @@map("proxies_abonent_credentials")
+}
+
+enum SocketStatus {
+  AUTHROIZATED
+  ONLINE
+  OFFLINE
+}
+
+model Socket {
+  id                      String         @id @default(uuid())
+  proxyToAbonentProject   ProxyToAbonent @relation(fields: [proxyToAbonentProjectId], references: [id])
+  proxyToAbonentProjectId String
+  status                  SocketStatus?
+  SocketLogs              SocketLogs[]
+
+  @@map("socket")
+}
+
+model SocketLogs {
+  id       String  @id @default(uuid())
+  socket   Socket? @relation(fields: [socketId], references: [id])
+  socketId String?
+  log      String?
+
+  @@map("socket_logs")
+}
