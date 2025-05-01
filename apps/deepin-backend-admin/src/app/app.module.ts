@@ -11,23 +11,26 @@ import { ProxiesAbonentOrchestrationModule } from './modules/proxies-abonent-orc
 import { ProjectCreedsModule } from './modules/project-creeds/project-creeds.module';
 import { SocketManagementModule } from './modules/socket-management/socket-management.module';
 import { CacheModule } from './modules/cache/cache.module';
+import { getRMQConfig } from './config/rmq/rmq-config';
+import { RMQModule } from 'nestjs-rmq';
 
 @Module({
-	imports: [
-		AuthModule,
-		AbonentsModule,
-		ProxiesModule,
-		SharedModule.register({
-			type: 'prisma',
-			global: true,
-		}),
-		PrometheusModule,
-		ProxiesAbonentOrchestrationModule,
-		ProjectCreedsModule,
-		SocketManagementModule,
-		CacheModule,
-	],
-	controllers: [AppController],
-	providers: [AppService, PrometheusService],
+  imports: [
+    RMQModule.forRootAsync(getRMQConfig()),
+    AuthModule,
+    AbonentsModule,
+    ProxiesModule,
+    SharedModule.register({
+      type: 'prisma',
+      global: true,
+    }),
+    PrometheusModule,
+    ProxiesAbonentOrchestrationModule,
+    ProjectCreedsModule,
+    SocketManagementModule,
+    CacheModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService, PrometheusService],
 })
 export class AppModule {}

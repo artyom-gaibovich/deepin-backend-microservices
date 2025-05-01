@@ -26,8 +26,7 @@ export class ColoredLogger extends ConsoleLogger {
     contextMessage: string,
     timestampDiff: string
   ): string {
-    const timestamp = chalk.gray(`[${new Date().toISOString()}]`);
-    const ctx = contextMessage ? chalk.red(`${contextMessage}`) : '';
+    chalk.gray(`[${new Date().toISOString()}]`);
     return super.formatMessage(
       logLevel,
       message,
@@ -56,32 +55,32 @@ export class ColoredLogger extends ConsoleLogger {
 }
 
 export class LoggingInterceptor implements NestInterceptor {
-	private readonly logger = new ColoredLogger(LoggingInterceptor.name);
+  private readonly logger = new ColoredLogger(LoggingInterceptor.name);
 
-	intercept(
-		context: ExecutionContext,
-		next: CallHandler<object>,
-	): Observable<object> | Promise<Observable<object>> {
-		const request = context.switchToHttp().getRequest<Request>();
-		const response = context.switchToHttp().getResponse<Response>();
-		return next.handle().pipe(
-			map((data) => {
-				this.logger.log(
-					JSON.stringify({
-						userAgent: request.header('user-agent'),
-						request: {
-							method: request.method,
-							url: request.url,
-							body: request.body,
-						},
-						response: {
-							...data,
-							statusCode: response.statusCode,
-						},
-					}),
-				);
-				return data;
-			}),
-		);
-	}
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler<object>
+  ): Observable<object> | Promise<Observable<object>> {
+    const request = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
+    return next.handle().pipe(
+      map((data) => {
+        this.logger.log(
+          JSON.stringify({
+            userAgent: request.header('user-agent'),
+            request: {
+              method: request.method,
+              url: request.url,
+              body: request.body,
+            },
+            response: {
+              ...data,
+              statusCode: response.statusCode,
+            },
+          })
+        );
+        return data;
+      })
+    );
+  }
 }
