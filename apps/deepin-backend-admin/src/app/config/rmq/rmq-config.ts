@@ -1,5 +1,6 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { IRMQServiceAsyncOptions } from 'nestjs-rmq';
+import { ColoredLogger } from '../../../libs/logging-interceptor';
 
 export const getRMQConfig = (): IRMQServiceAsyncOptions => ({
   inject: [ConfigService],
@@ -13,7 +14,7 @@ export const getRMQConfig = (): IRMQServiceAsyncOptions => ({
         host: configService.get('AMQP_HOSTNAME') ?? '',
       },
     ],
-    queueName: configService.get('AMQP_QUEUE'),
+    logger: new ColoredLogger(),
     prefetchCount: 32,
     serviceName: 'socket',
   }),

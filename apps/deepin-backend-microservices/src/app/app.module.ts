@@ -3,6 +3,7 @@ import { AppService } from './app.service';
 import { getRMQConfig } from './config/rmq/rmq-config';
 import { RMQModule } from 'nestjs-rmq';
 import { SocketManagementModule } from './modules/socket-management/socket-management.module';
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { SharedModule } from '@deepin-backend-microservices/deepin-backend-admin/modules/shared/shared.module';
 
 @Module({

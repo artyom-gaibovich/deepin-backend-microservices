@@ -5,6 +5,7 @@ import { AIGAEAStrategy } from '../../infrasturcutre/strategies/deepin-projects/
 import { SocketManagerAbstract } from '../../infrasturcutre/context/aigaea/socket/socket-manager-abstract';
 import { ProxyAbonentRepository } from '../../../../../../../deepin-backend-admin/src/app/modules/proxies-abonent-orchestration/application/proxy-abonent.repository';
 import { IProxyAbonentCreeds } from '../../../../../../../deepin-backend-admin/src/app/modules/proxies-abonent-orchestration/domain/entities/proxy-abonent-link.entity';
+import { ExtendedMessage } from 'nestjs-rmq';
 
 @Injectable()
 export class SocketManagementUseCases {
@@ -34,6 +35,27 @@ export class SocketManagementUseCases {
           data
         );
       });
+  }
+
+  startRmq(dto: StartSocketDto, msg: ExtendedMessage) {
+    return this.proxyAbonentRepository
+      .findById(dto.proxyToAbonentProjectId)
+      .then((data: IProxyAbonentCreeds) => {
+        const { project, proxy } = data;
+        const { is_active, id } = proxy;
+        if (!is_active) {
+          throw new BadRequestException(`Proxy ${id} is not active`);
+        }
+        return this.socketManagerAbstract.startRmq(
+          dto.proxyToAbonentProjectId,
+          data,
+          msg
+        );
+      });
+  }
+
+  stopRmq(dto: StopSocketDto) {
+    return this.socketManagerAbstract.stopRmq(dto.proxyToAbonentProjectId);
   }
 
   stopSocket(dto: StopSocketDto) {
