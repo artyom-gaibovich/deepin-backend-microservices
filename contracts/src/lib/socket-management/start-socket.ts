@@ -1,3 +1,5 @@
+import { ExtendedMessage } from 'nestjs-rmq';
+
 export namespace StartSocket {
   export const topic = 'socket.start-socket.query';
 
@@ -5,5 +7,7 @@ export namespace StartSocket {
     proxyToAbonentProjectId: string;
   }
 
-  export class Response {}
+  export class Response {
+    msg: ExtendedMessage;
+  }
 }
