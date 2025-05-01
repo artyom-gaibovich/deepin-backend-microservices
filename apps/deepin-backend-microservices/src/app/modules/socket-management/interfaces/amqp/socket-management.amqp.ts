@@ -29,12 +29,13 @@ export class SocketManagementControllerAMQP {
     @Body() dto: StartSocket.Request,
     @RMQMessage msg: ExtendedMessage
   ): Promise<any> {
-    console.log('HEL');
     return this.socketManagementUseCases
       .startSocket(dto)
       .then(() => {
         this.rmqService.ack(msg);
-        return dto;
+        return {
+          proxyToAbonentProjectId: dto.proxyToAbonentProjectId,
+        };
       })
       .catch((err) => {
         this.rmqService.nack(msg);
@@ -47,13 +48,16 @@ export class SocketManagementControllerAMQP {
     @Body() dto: StopSocket.Request,
     @RMQMessage msg: ExtendedMessage
   ) {
-    //return this.socketManagementUseCases.stopRmq(dto);
     return this.socketManagementUseCases
       .stopSocket(dto)
       .then(() => {
         this.rmqService.ack(msg);
+        console.log('dto.proxyToAbonentProjectId', dto.proxyToAbonentProjectId);
+        return {
+          proxyToAbonentProjectId: dto.proxyToAbonentProjectId,
+        };
       })
-      .catch(() => {
+      .catch((err) => {
         return this.rmqService.nack(msg);
       });
   }
@@ -62,6 +66,7 @@ export class SocketManagementControllerAMQP {
   @RMQRoute(TestSocket.topic, { manualAck: true })
   async testSocket(dto: TestSocket.Request, @RMQMessage msg: ExtendedMessage) {
     console.log('Process ID:', process.pid);
+    this.rmqService.ack(msg);
     return new Promise<any>((resolve, reject) => {
       resolve('OK');
     });
