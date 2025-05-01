@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  NotFoundException,
+  Post,
+} from '@nestjs/common';
 import { StartSocketDto } from '../dtos/start.dto';
 import { StopSocketDto } from '../dtos/stop.dto';
 import { ExtendedMessage, RMQService } from 'nestjs-rmq';
@@ -30,7 +37,12 @@ export class SocketManagementController {
     return this.rmqService
       .send<StopSocket.Request, StopSocket.Response>(StopSocket.topic, dto)
       .then((data) => data)
-      .catch();
+      .catch((err) => {
+        /**
+         * Здесь надо ебучую ошибку поправить
+         */
+        return err;
+      });
   }
 
   @Get('/test')

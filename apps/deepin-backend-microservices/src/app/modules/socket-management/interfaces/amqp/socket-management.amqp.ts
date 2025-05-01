@@ -1,4 +1,4 @@
-import { Body, Controller, Inject } from '@nestjs/common';
+import { Body, Controller, Inject, NotFoundException } from '@nestjs/common';
 import { SocketService } from '../../../../../../../deepin-backend-admin/src/app/modules/socket-management/service/socket.service';
 import {
   ExtendedMessage,
@@ -58,6 +58,13 @@ export class SocketManagementControllerAMQP {
         };
       })
       .catch((err) => {
+        if (err === 'NO_STATUS') {
+          this.rmqService.ack(msg);
+          return {
+            status: err,
+          };
+        }
+        console.log(err.message);
         return this.rmqService.nack(msg);
       });
   }

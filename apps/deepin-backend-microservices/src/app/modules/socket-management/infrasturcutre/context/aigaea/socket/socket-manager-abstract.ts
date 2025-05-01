@@ -89,15 +89,23 @@ export class SocketManagerAbstract implements OnModuleInit {
   }
 
   public handleStop(id: string) {
-    return this.ProxyAbonentRepository.updateById(id, {
-      status: false,
-    }).then(() => {
-      const failsafeSocket = this.sockets.get(id);
-      if (!failsafeSocket) {
-        throw new BadRequestException(`Не найден : ${id}`);
-      }
-      failsafeSocket.stopSocket();
-      this.sockets.delete(id);
-    });
+    return this.ProxyAbonentRepository.findById(id)
+      .then((entity: any) => {
+        if (entity.status === false) {
+          console.log('пошел нахуй');
+          return Promise.reject('NO_STATUS');
+        }
+        return this.ProxyAbonentRepository.updateById(id, {
+          status: false,
+        });
+      })
+      .then(() => {
+        const failsafeSocket = this.sockets.get(id);
+        if (!failsafeSocket) {
+          throw new BadRequestException(`Не найден : ${id}`);
+        }
+        failsafeSocket.stopSocket();
+        this.sockets.delete(id);
+      });
   }
 }
