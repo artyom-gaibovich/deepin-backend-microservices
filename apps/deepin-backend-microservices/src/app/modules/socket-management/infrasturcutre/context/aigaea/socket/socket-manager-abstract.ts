@@ -94,7 +94,6 @@ export class SocketManagerAbstract implements OnModuleInit {
     }).then(() => {
       const failsafeSocket = this.sockets.get(id);
       if (!failsafeSocket) {
-        console.log('ERROR !');
         throw new BadRequestException(`Не найден : ${id}`);
       }
       failsafeSocket.stopSocket();
