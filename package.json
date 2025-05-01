@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "npx nx serve deepin-backend-admin",
+    "dev:2": "npx nx serve deepin-backend-microservices",
     "dev:inspect": "nodemon -e ts,json --exec node --inspect=localhost:9222 -r ts-node/register apps/deepin-backend-admin/src/main.ts"
   },
   "private": true,
