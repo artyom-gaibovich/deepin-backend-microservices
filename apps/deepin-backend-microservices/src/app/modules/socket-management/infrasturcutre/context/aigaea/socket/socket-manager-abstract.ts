@@ -15,6 +15,7 @@ import { IProxyAbonentCreeds } from '@deepin-backend-microservices/deepin-backen
 import { ProxyAbonentRepository } from '@deepin-backend-microservices/deepin-backend-admin/modules/proxies-abonent-orchestration/application/proxy-abonent.repository';
 import { ExtendedMessage, RMQService } from 'nestjs-rmq';
 import { ColoredLogger } from '../../../../../../../../../deepin-backend-admin/src/libs/logging-interceptor';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class SocketManagerAbstract implements OnModuleInit {
@@ -24,11 +25,10 @@ export class SocketManagerAbstract implements OnModuleInit {
   public messagesRmq: Map<string, ExtendedMessage> = new Map();
 
   constructor(
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     @Inject() public projectCreedsRepository: ProjectCreedsRepository,
     @Inject() private AIGAEARequestFactory: AIGAEARequestFactory,
-    @Inject() private ProxyAbonentRepository: ProxyAbonentRepository,
-    @Inject()
-    private readonly rmqService: RMQService
+    @Inject() private ProxyAbonentRepository: ProxyAbonentRepository
   ) {}
 
   onModuleInit() {
@@ -42,19 +42,43 @@ export class SocketManagerAbstract implements OnModuleInit {
   public handleStart(id: string, config: IProxyAbonentCreeds) {
     return this.ProxyAbonentRepository.updateById(id, {
       status: true,
-    }).then(() => {
-      const failsafeSocket = new FailsafeSocket(
-        this.ProxyAbonentRepository,
-        this.AIGAEARequestFactory,
-        this.projectCreedsRepository,
-        new OfflineSocketState(),
-        this,
-        id,
-        config
-      );
-      this.sockets.set(id, failsafeSocket);
-      failsafeSocket.startSocket();
-    });
+    })
+      .then(() => {
+        const browserIdFetch = async () => {
+          const browserId = await this.cacheManager.get(id);
+          if (!browserId) {
+            const newBrowserID = `${browser_id.slice(0, 8)}${crypto
+              .randomUUID()
+              .slice(8)}`;
+            return this.cacheManager
+              .set(id, newBrowserID, 0)
+              .then(() => newBrowserID);
+          }
+          return browserId;
+        };
+        const { project } = config;
+        const { credentials } = project;
+        const { browser_id } = credentials as {
+          browser_id: string;
+        };
+        return browserIdFetch();
+      })
+      .then((browserId) => {
+        const newConfig = Object.assign({}, config);
+        newConfig.project.credentials.browser_id = browserId;
+        const failsafeSocket = new FailsafeSocket(
+          this.cacheManager,
+          this.ProxyAbonentRepository,
+          this.AIGAEARequestFactory,
+          this.projectCreedsRepository,
+          new OfflineSocketState(),
+          this,
+          id,
+          newConfig
+        );
+        this.sockets.set(id, failsafeSocket);
+        failsafeSocket.startSocket();
+      });
   }
 
   public handleStop(id: string) {
