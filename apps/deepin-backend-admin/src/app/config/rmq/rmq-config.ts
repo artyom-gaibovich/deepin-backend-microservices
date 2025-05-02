@@ -15,7 +15,7 @@ export const getRMQConfig = (): IRMQServiceAsyncOptions => ({
       },
     ],
     logger: new ColoredLogger(),
-    prefetchCount: 32,
+    prefetchCount: 1024,
     serviceName: 'socket',
   }),
 });

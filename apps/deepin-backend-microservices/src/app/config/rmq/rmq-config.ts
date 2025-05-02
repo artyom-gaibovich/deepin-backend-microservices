@@ -16,7 +16,7 @@ export const getRMQConfig = (): IRMQServiceAsyncOptions => ({
     ],
     logger: new ColoredLogger(),
     queueName: configService.get('AMQP_QUEUE'),
-    prefetchCount: 32,
+    prefetchCount: 1024,
     serviceName: 'socket',
   }),
 });
