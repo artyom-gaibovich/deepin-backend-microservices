@@ -37,27 +37,6 @@ export class SocketManagementUseCases {
       });
   }
 
-  startRmq(dto: StartSocketDto, msg: ExtendedMessage) {
-    return this.proxyAbonentRepository
-      .findById(dto.proxyToAbonentProjectId)
-      .then((data: IProxyAbonentCreeds) => {
-        const { project, proxy } = data;
-        const { is_active, id } = proxy;
-        if (!is_active) {
-          throw new BadRequestException(`Proxy ${id} is not active`);
-        }
-        return this.socketManagerAbstract.startRmq(
-          dto.proxyToAbonentProjectId,
-          data,
-          msg
-        );
-      });
-  }
-
-  stopRmq(dto: StopSocketDto) {
-    return this.socketManagerAbstract.stopRmq(dto.proxyToAbonentProjectId);
-  }
-
   stopSocket(dto: StopSocketDto) {
     return this.socketManagerAbstract.handleStop(dto.proxyToAbonentProjectId);
   }

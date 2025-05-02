@@ -14,9 +14,11 @@ import { IProxyAbonentCreeds } from '@deepin-backend-microservices/deepin-backen
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { ProxyAbonentRepository } from '@deepin-backend-microservices/deepin-backend-admin/modules/proxies-abonent-orchestration/application/proxy-abonent.repository';
 import { ExtendedMessage, RMQService } from 'nestjs-rmq';
+import { ColoredLogger } from '../../../../../../../../../deepin-backend-admin/src/libs/logging-interceptor';
 
 @Injectable()
 export class SocketManagerAbstract implements OnModuleInit {
+  public logger = new ColoredLogger();
   public activeRequests: Map<string, { cancel: () => void }> = new Map();
   public sockets: Map<string, FailsafeSocket> = new Map();
   public messagesRmq: Map<string, ExtendedMessage> = new Map();
@@ -31,7 +33,9 @@ export class SocketManagerAbstract implements OnModuleInit {
 
   onModuleInit() {
     setInterval(() => {
-      console.log(`Воркеры: PID: ${this.sockets}, Size: ${this.sockets.size}`);
+      this.logger.warn(
+        `Воркеры: PID: ${this.sockets}, Size: ${this.sockets.size}`
+      );
     }, 2000);
   }
 
@@ -50,41 +54,6 @@ export class SocketManagerAbstract implements OnModuleInit {
       );
       this.sockets.set(id, failsafeSocket);
       failsafeSocket.startSocket();
-    });
-  }
-
-  public startRmq(
-    id: string,
-    config: IProxyAbonentCreeds,
-    message: ExtendedMessage
-  ) {
-    return this.ProxyAbonentRepository.updateById(id, {
-      status: true,
-    }).then(() => {
-      const msg = this.messagesRmq.get(id);
-      if (msg) {
-        this.rmqService.nack(message);
-        this.rmqService.nack(message);
-        return;
-      }
-      if (this.messagesRmq.size === 2) {
-        console.log('Передаю в другой воркер');
-        this.rmqService.nack(message);
-        return;
-      }
-      this.messagesRmq.set(id, message);
-    });
-  }
-
-  public stopRmq(id: string) {
-    return this.ProxyAbonentRepository.updateById(id, {
-      status: false,
-    }).then(() => {
-      const message = this.messagesRmq.get(id);
-      if (message) {
-        return;
-      }
-      this.rmqService.ack(message);
     });
   }
 

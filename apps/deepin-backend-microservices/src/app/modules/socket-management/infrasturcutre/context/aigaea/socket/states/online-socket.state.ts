@@ -28,7 +28,13 @@ export class OnlineSocketState extends AbstractSocketState {
     const { id, config } = this.failsafeSocket;
     const { project, proxy } = config;
     const { credentials, title } = project;
-    const { token, browser_id } = credentials;
+    const { token, browser_id } = credentials as {
+      token: string;
+      browser_id: string;
+    };
+    const newBrowserID = `${browser_id.slice(0, 8)}${crypto
+      .randomUUID()
+      .slice(8)}`;
     const { protocol, ip, username, password, port, host } = proxy;
 
     const { activeRequests } = this.failsafeSocket.socketManager;
@@ -54,7 +60,7 @@ export class OnlineSocketState extends AbstractSocketState {
             `POST v1/network/ping`
           )({
             token,
-            browser_id,
+            browser_id: newBrowserID,
             authConfig,
             password,
             port,
@@ -79,10 +85,11 @@ export class OnlineSocketState extends AbstractSocketState {
 						Интервал: [${interval}]`,
             OnlineSocketState.name
           );
+          return new Promise((resolve) => setTimeout(resolve, 3000));
         })
         .catch((error) => {
           console.error(`Request ${'x'} failed:`, error.message);
-          return new Promise((resolve) => setTimeout(resolve, 1000));
+          return new Promise((resolve) => setTimeout(resolve, 3000));
         });
 
     const makePingRequestChain = () => {
@@ -124,7 +131,7 @@ export class OnlineSocketState extends AbstractSocketState {
         .then(pingRequest)
         .catch((error) => {
           console.error(`Request ${'x'} failed:`, error.message);
-          return new Promise((resolve) => setTimeout(resolve, 1000));
+          return new Promise((resolve) => setTimeout(resolve, 3000));
         })
         .then(makePingRequestChain);
     };
