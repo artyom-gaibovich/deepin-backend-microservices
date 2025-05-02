@@ -15,3 +15,7 @@ run-backend:
 run-micro-many:
 	nx serve deepin-backend-microservices --port=4200
 
+
+
+rm:
+	docker compose -f docker-compose.yml down --remove-orphans

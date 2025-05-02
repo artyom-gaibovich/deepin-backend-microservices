@@ -3,8 +3,13 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "build:deepin-backend-admin": "nx build deepin-backend-admin",
+    "build:deepin-backend-microservices": "nx build deepin-backend-microservices",
+    "serve:deepin-backend-admin": "nx serve deepin-backend-admin",
+    "serve:deepin-backend-microservices": "nx serve deepin-backend-microservices",
     "dev": "npx nx serve deepin-backend-admin",
     "dev:2": "npx nx serve deepin-backend-microservices",
+    "db:deploy": "npx prisma migrate deploy && npx prisma generate",
     "dev:inspect": "nodemon -e ts,json --exec node --inspect=localhost:9222 -r ts-node/register apps/deepin-backend-admin/src/main.ts"
   },
   "private": true,
