@@ -19,3 +19,8 @@ run-micro-many:
 
 rm:
 	docker compose -f docker-compose.yml down --remove-orphans
+
+
+
+rm-vol:
+	docker compose down --volumes --remove-orphans

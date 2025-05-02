@@ -44,7 +44,7 @@ const infrastructure: Provider[] = [
                 lruSize: 5000,
               }),
             }),
-            createKeyv('redis://0.0.0.0:60476'),
+            createKeyv('redis://localhost:6379'),
           ],
         };
       },

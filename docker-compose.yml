@@ -1,45 +1,80 @@
 version: '3.9'
 services:
-  deepin-backend-admin:
-    networks:
-      - prisma-network
+  app:
     build:
       context: .
       dockerfile: apps/deepin-backend-admin/Dockerfile
-      target: build
-    command: npm run serve:deepin-backend-admin
+    container_name: nest_app
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     ports:
       - "3000:3000"
-    depends_on:
-      postgres_db:
-        condition: service_healthy
     environment:
-      DATABASE_URL: "postgresql://postgres:prisma@postgres_db:5432/postgres?schema=public"
-      JWT_ACCESS_SECRET: "dsaa"
-      JWT_REFRESH_SECRET: "asdasd"
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_HOST=postgres_db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=my-postgres
+      - DATABASE_PASSWORD=prisma
+      - JWT_ACCESS_SECRET='hui'
+      - JWT_REFRESH_SECRET='hui2'
+      - DATABASE_NAME=postgres
+      - JWT_SECRET=my-super-secret-key
+      - LOG_LEVEL=info
+      - DATABASE_URL=postgresql://postgres:prisma@postgres_db:5432/postgres?schema=public
+      - BOT_TOKEN=7451310262:AAHwcRUCcpUA8s7NCjq6624l9KHdkqluw84
+      - AMQP_EXCHANGE=socket
+      - AMQP_USER=guest
+      - AMQP_PASSWORD=guest
+      - AMQP_HOSTNAME=rmq
+      - AMQP_QUEUE=socket
 
-  deepin-backend-microservices:
-    networks:
-      - prisma-network
+    depends_on:
+      - rmq
+      - redis
+      - prometheus
+      - grafana
+      - postgres_db
+
+  backend-microservices:
     build:
       context: .
       dockerfile: apps/deepin-backend-microservices/Dockerfile
-      target: build
-    command: npm run serve:deepin-backend-microservices
+    container_name: deepin-backend-microservice
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     ports:
       - "4200:4200"
-    depends_on:
-      postgres_db:
-        condition: service_healthy
     environment:
-      DATABASE_URL: "postgresql://postgres:prisma@postgres_db:5432/postgres?schema=public"
-      JWT_ACCESS_SECRET: ""
-      JWT_REFRESH_SECRET: ""
-      AMQP_EXCHANGE: socket
-      AMQP_USER: guest
-      AMQP_PASSWORD: guest
-      AMQP_HOSTNAME: localhost
-      AMQP_QUEUE: socket
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_HOST=postgres_db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=my-postgres
+      - DATABASE_PASSWORD=prisma
+      - JWT_ACCESS_SECRET='hui'
+      - JWT_REFRESH_SECRET='hui2'
+      - DATABASE_NAME=postgres
+      - JWT_SECRET=my-super-secret-key
+      - LOG_LEVEL=info
+      - DATABASE_URL=postgresql://postgres:prisma@postgres_db:5432/postgres?schema=public
+      - BOT_TOKEN=7451310262:AAHwcRUCcpUA8s7NCjq6624l9KHdkqluw84
+      - AMQP_EXCHANGE=socket
+      - AMQP_USER=guest
+      - AMQP_PASSWORD=guest
+      - AMQP_HOSTNAME=rmq
+      - AMQP_QUEUE=socket
+
+    depends_on:
+      - rmq
+      - redis
+      - prometheus
+      - grafana
+      - postgres_db
+
+
 
   postgres_db:
     image: postgres:15
@@ -52,14 +87,39 @@ services:
       POSTGRES_PASSWORD: prisma
     ports:
       - '5432:5432'
-    networks:
-      - prisma-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       interval: 5s
       timeout: 2s
       retries: 20
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  rmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+  redis:
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
 
-networks:
-  prisma-network:
-    name: prisma-network
+volumes:
+  pgdata:
+

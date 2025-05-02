@@ -34,6 +34,9 @@ export class SocketManagementUseCases {
           dto.proxyToAbonentProjectId,
           data
         );
+      })
+      .catch((err) => {
+        console.error(err);
       });
   }
 

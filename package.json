@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "build:deepin-backend-admin": "nx build deepin-backend-admin",
-    "build:deepin-backend-microservices": "nx build deepin-backend-microservices",
+    "build:deepin-backend-admin": "npx nx build deepin-backend-admin",
+    "build:deepin-backend-microservices": "npx nx build deepin-backend-microservices",
     "serve:deepin-backend-admin": "nx serve deepin-backend-admin",
     "serve:deepin-backend-microservices": "nx serve deepin-backend-microservices",
     "dev": "npx nx serve deepin-backend-admin",

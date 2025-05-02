@@ -1,25 +1,25 @@
-FROM node:20.18.0-alpine as development
-
-
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+
+RUN npm ci --force
 
 COPY . .
-RUN npm run build:deepin-backend-admin
 
-FROM node:20.18.0-alpine as production
-ENV NODE_ENV=production
-ENV PORT=3000
-EXPOSE ${PORT}
-USER node
+RUN npx prisma generate && npm run build:deepin-backend-admin
+
+FROM node:20-alpine
+
 WORKDIR /app
 
-COPY --from=development /app/dist/apps/deepin-backend-admin ./
-COPY --from=development /app/prisma ./prisma/
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist/apps/deepin-backend-admin ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY package.json ./
 
-RUN npm install --only=production
+EXPOSE 3000
 
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=prisma/schema.prisma && node dist/main.js"]
 
-CMD ["node", "main"]
