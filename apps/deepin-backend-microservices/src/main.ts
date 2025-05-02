@@ -11,10 +11,11 @@ import * as process from 'node:process';
 async function bootstrap() {
   const logger = new ColoredLogger();
   const app = await NestFactory.create(AppModule);
-  const port = 4200;
+  app.init();
+  /*const port = 4200;
   await app.listen(port, () => {
     logger.log(`Server started port : ${port}`);
-  });
+  });*/
 }
 
 bootstrap();

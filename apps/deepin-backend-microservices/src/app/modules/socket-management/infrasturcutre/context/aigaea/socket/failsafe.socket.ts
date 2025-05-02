@@ -4,8 +4,11 @@ import { AIGAEARequestFactory } from '../factory/aigaea-request.factory';
 import { ProjectCreedsRepository } from '@deepin-backend-microservices/deepin-backend-admin/modules/project-creeds/application/project-creeds.repository';
 import { IProxyAbonentCreeds } from '@deepin-backend-microservices/deepin-backend-admin/modules/proxies-abonent-orchestration/domain/entities/proxy-abonent-link.entity';
 import { ProxyAbonentRepository } from '@deepin-backend-microservices/deepin-backend-admin/modules/proxies-abonent-orchestration/application/proxy-abonent.repository';
+import { Inject } from '@nestjs/common';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 export class FailsafeSocket {
+  public cacheManager: Cache;
   public socketState: AbstractSocketState;
   public socketManager: SocketManagerAbstract;
   public requestBody: any;
@@ -17,6 +20,7 @@ export class FailsafeSocket {
   public cachedUIDS: Map<string, number> = new Map();
 
   constructor(
+    cacheManager: Cache,
     ProxyAbonentRepository: ProxyAbonentRepository,
     AIGAEARequestFactory: AIGAEARequestFactory,
     projectCreedsRepository: ProjectCreedsRepository,
@@ -25,6 +29,7 @@ export class FailsafeSocket {
     id: string,
     config: IProxyAbonentCreeds
   ) {
+    this.cacheManager = cacheManager;
     this.ProxyAbonentRepository = ProxyAbonentRepository;
     this.AIGAEARequestFactory = AIGAEARequestFactory;
     this.projectCreedsRepository = projectCreedsRepository;

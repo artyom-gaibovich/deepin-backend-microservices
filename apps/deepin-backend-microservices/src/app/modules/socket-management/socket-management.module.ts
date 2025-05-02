@@ -9,6 +9,9 @@ import { ProxyAbonentRepository } from '../../../../../deepin-backend-admin/src/
 import { PrismaProjectCreedsRepository } from '../../../../../deepin-backend-admin/src/app/modules/project-creeds/infrastructure/project-creeds/prisma-project-creeds.repository';
 import { ProjectCreedsRepository } from '../../../../../deepin-backend-admin/src/app/modules/project-creeds/application/project-creeds.repository';
 import { SocketManagementControllerAMQP } from '@deepin-backend-microservices/deepin-backend-microservices/modules/socket-management/interfaces/amqp/socket-management.amqp';
+import { Cache, CacheModule } from '@nestjs/cache-manager';
+import { createKeyv, Keyv } from '@keyv/redis';
+import { CacheableMemory } from 'cacheable';
 
 const application: Provider[] = [SocketManagementUseCases, SocketService];
 
@@ -30,7 +33,23 @@ const infrastructure: Provider[] = [
   },
 ];
 @Module({
-  imports: [],
+  imports: [
+    CacheModule.registerAsync({
+      useFactory: async () => {
+        return {
+          stores: [
+            new Keyv({
+              store: new CacheableMemory({
+                ttl: 5000,
+                lruSize: 5000,
+              }),
+            }),
+            createKeyv('redis://0.0.0.0:60476'),
+          ],
+        };
+      },
+    }),
+  ],
   providers: [...application, ...infrastructure],
   controllers: [SocketManagementControllerAMQP],
 })

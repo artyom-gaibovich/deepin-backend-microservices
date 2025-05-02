@@ -32,9 +32,7 @@ export class OnlineSocketState extends AbstractSocketState {
       token: string;
       browser_id: string;
     };
-    const newBrowserID = `${browser_id.slice(0, 8)}${crypto
-      .randomUUID()
-      .slice(8)}`;
+
     const { protocol, ip, username, password, port, host } = proxy;
 
     const { activeRequests } = this.failsafeSocket.socketManager;
@@ -46,13 +44,13 @@ export class OnlineSocketState extends AbstractSocketState {
     const authConfig = {
       uid: '',
     };
+
     activeRequests.set(id, {
       cancel: () => {
         isCancelled = true;
         activeRequests.delete(id);
       },
     });
-
     const pingRequest = () =>
       axios
         .post<PingResponse>(
@@ -60,7 +58,7 @@ export class OnlineSocketState extends AbstractSocketState {
             `POST v1/network/ping`
           )({
             token,
-            browser_id: newBrowserID,
+            browser_id: browser_id,
             authConfig,
             password,
             port,
