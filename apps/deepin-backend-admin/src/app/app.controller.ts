@@ -1,28 +1,28 @@
-import { Controller, Get, Inject, UseInterceptors } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import {
-  Cache,
-  CACHE_MANAGER,
-  CacheInterceptor,
-  CacheKey,
-  CacheTTL,
-} from '@nestjs/cache-manager';
+import { request } from 'express';
+import { ConcreteSocket } from './test/ConceteSocket';
+import { Socket } from './test/Socket';
 
 @Controller()
-@UseInterceptors(CacheInterceptor)
 export class AppController {
-  constructor(
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
-    private readonly appService: AppService
-  ) {}
+  private requests: Map<string, Socket> = new Map();
 
-  @Get()
-  @CacheKey('some_route')
-  @CacheTTL(5000)
-  async getData() {
-    await this.cacheManager.set('cached_item', { key: 32 }, 5000);
-    const data = await this.cacheManager.get('cached_item');
-    console.log(data);
-    return 'ok';
+  constructor(private readonly appService: AppService) {}
+
+  @Get('start')
+  async testPing() {
+    const socket = new ConcreteSocket('http://localhost:4000', 2000);
+    socket.start();
+    this.requests.set('id_01', socket);
+  }
+
+  @Get('stop')
+  async stopPing() {
+    const socket = this.requests.get('id_01');
+    if (!socket) {
+      return '404';
+    }
+    socket.stop();
   }
 }
