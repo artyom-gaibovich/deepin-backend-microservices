@@ -10,8 +10,9 @@ import { PrismaProjectCreedsRepository } from '../../../../../deepin-backend-adm
 import { ProjectCreedsRepository } from '../../../../../deepin-backend-admin/src/app/modules/project-creeds/application/project-creeds.repository';
 import { SocketManagementControllerAMQP } from '@deepin-backend-microservices/deepin-backend-microservices/modules/socket-management/interfaces/amqp/socket-management.amqp';
 import { Cache, CacheModule } from '@nestjs/cache-manager';
-import { createKeyv, Keyv } from '@keyv/redis';
+import KeyvRedis, { createKeyv, Keyv } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
+import * as process from 'node:process';
 
 const application: Provider[] = [SocketManagementUseCases, SocketService];
 
@@ -36,15 +37,19 @@ const infrastructure: Provider[] = [
   imports: [
     CacheModule.registerAsync({
       useFactory: async () => {
+        const redisStore = new KeyvRedis(
+          `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`
+        );
+        const memoryStore = new CacheableMemory({
+          ttl: 5000,
+          lruSize: 5000,
+        });
+
         return {
+          store: new Keyv({ store: redisStore }),
           stores: [
-            new Keyv({
-              store: new CacheableMemory({
-                ttl: 5000,
-                lruSize: 5000,
-              }),
-            }),
-            createKeyv('redis://localhost:6379'),
+            new Keyv({ store: memoryStore }),
+            new Keyv({ store: redisStore }),
           ],
         };
       },

@@ -52,4 +52,7 @@ export class SocketManagementController {
       .then((data) => data)
       .catch((err) => err);
   }
+
+  @Post('/start')
+  async testPing() {}
 }

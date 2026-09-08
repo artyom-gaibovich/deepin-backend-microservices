@@ -1,6 +1,8 @@
 version: '3.9'
 services:
   app:
+    networks:
+      - backend_network
     build:
       context: .
       dockerfile: apps/deepin-backend-admin/Dockerfile
@@ -29,6 +31,8 @@ services:
       - AMQP_PASSWORD=guest
       - AMQP_HOSTNAME=rmq
       - AMQP_QUEUE=socket
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
 
     depends_on:
       - rmq
@@ -36,8 +40,9 @@ services:
       - prometheus
       - grafana
       - postgres_db
-
   backend-microservices:
+    networks:
+      - backend_network
     build:
       context: .
       dockerfile: apps/deepin-backend-microservices/Dockerfile
@@ -66,6 +71,8 @@ services:
       - AMQP_PASSWORD=guest
       - AMQP_HOSTNAME=rmq
       - AMQP_QUEUE=socket
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
 
     depends_on:
       - rmq
@@ -73,10 +80,9 @@ services:
       - prometheus
       - grafana
       - postgres_db
-
-
-
   postgres_db:
+    networks:
+      - backend_network
     image: postgres:15
     hostname: postgres_db
     container_name: postgres_db
@@ -100,11 +106,18 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
+    networks:
+      - backend_network
   redis:
     image: 'redis:latest'
     ports:
       - '6379:6379'
+    environment:
+      - REDIS_PORT=6379
     restart: unless-stopped
+    networks:
+      - backend_network
+
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -113,13 +126,20 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     restart: unless-stopped
+    networks:
+      - backend_network
   grafana:
     image: grafana/grafana
     container_name: grafana
     ports:
       - "3001:3000"
     restart: unless-stopped
+    networks:
+      - backend_network
 
+networks:
+  backend_network:
+    driver: bridge
 volumes:
   pgdata:
 

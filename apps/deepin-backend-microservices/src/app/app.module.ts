@@ -7,9 +7,6 @@ import { SocketManagementModule } from './modules/socket-management/socket-manag
 import { SharedModule } from '@deepin-backend-microservices/deepin-backend-admin/modules/shared/shared.module';
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { PrometheusModule } from '@deepin-backend-microservices/deepin-backend-admin/modules/prometheus/prometheus.module';
-import { CacheModule } from '@nestjs/cache-manager';
-import { createKeyv, Keyv } from '@keyv/redis';
-import { CacheableMemory } from 'cacheable';
 
 @Module({
   imports: [

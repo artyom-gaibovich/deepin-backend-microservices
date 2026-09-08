@@ -1,10 +1,25 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
-import { ColoredLogger, LoggingInterceptor } from '../../../../../libs/logging-interceptor';
+import {
+	Injectable,
+	OnModuleDestroy,
+	OnModuleInit,
+} from '@nestjs/common';
+import {
+	Prisma,
+	PrismaClient,
+} from '@prisma/client';
+import {
+	ColoredLogger,
+	LoggingInterceptor,
+} from '../../../../../libs/logging-interceptor';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-	private readonly logger = new ColoredLogger(LoggingInterceptor.name);
+export class PrismaService
+	extends PrismaClient
+	implements OnModuleInit, OnModuleDestroy
+{
+	private readonly logger = new ColoredLogger(
+		LoggingInterceptor.name,
+	);
 
 	constructor() {
 		super({
@@ -24,21 +39,31 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 	$on<
 		V extends 'log' extends keyof Prisma.PrismaClientOptions
 			? // @ts-ignore
-				Prisma.PrismaClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition>
+			  Prisma.PrismaClientOptions['log'] extends Array<
+					Prisma.LogLevel | Prisma.LogDefinition
+			  >
 				? // @ts-ignore
 
-					Prisma.GetEvents<Prisma.PrismaClientOptions['log']>
+				  Prisma.GetEvents<
+						Prisma.PrismaClientOptions['log']
+				  >
 				: never
 			: never,
 	>(
 		eventType: V,
-		callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void,
+		callback: (
+			event: V extends 'query'
+				? Prisma.QueryEvent
+				: Prisma.LogEvent,
+		) => void,
 	): PrismaClient {
 		// @ts-ignore
 		return super.$on('query', (e: any) => {
 			this.logger.debug('Query: ' + e.query);
 			this.logger.debug('Params: ' + e.params);
-			this.logger.debug('Duration: ' + e.duration + 'ms');
+			this.logger.debug(
+				'Duration: ' + e.duration + 'ms',
+			);
 		});
 	}
 }

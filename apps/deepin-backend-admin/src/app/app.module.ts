@@ -12,52 +12,98 @@ import { ProjectCreedsModule } from './modules/project-creeds/project-creeds.mod
 import { SocketManagementModule } from './modules/socket-management/socket-management.module';
 import { getRMQConfig } from './config/rmq/rmq-config';
 import { RMQModule } from 'nestjs-rmq';
-import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
+import {
+	CacheInterceptor,
+	CacheModule,
+} from '@nestjs/cache-manager';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import * as redisStore from 'cache-manager-redis-store';
-import { createKeyv, Keyv } from '@keyv/redis';
+import KeyvRedis, {
+	Keyv,
+} from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
+import process from 'node:process';
 
-//TODO Не забыть индексы навесить !
+//TODO Не забыть индексы навесить !d
 
 @Module({
-  imports: [
-    CacheModule.registerAsync({
-      useFactory: async () => {
-        return {
-          stores: [
-            new Keyv({
-              store: new CacheableMemory({
-                ttl: 5000,
-                lruSize: 5000,
-              }),
-            }),
-            createKeyv('redis://localhost:6379'),
-          ],
-        };
-      },
-    }),
-    RMQModule.forRootAsync(getRMQConfig()),
-    AuthModule,
-    AbonentsModule,
-    ProxiesModule,
-    SharedModule.register({
-      type: 'prisma',
-      global: true,
-    }),
-    PrometheusModule,
-    ProxiesAbonentOrchestrationModule,
-    ProjectCreedsModule,
-    SocketManagementModule,
-  ],
-  controllers: [AppController],
-  providers: [
-    AppService,
-    PrometheusService,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: CacheInterceptor,
-    },
-  ],
+	imports: [
+		CacheModule.registerAsync(
+			{
+				useFactory:
+					async () => {
+						const redisStore =
+							new KeyvRedis(
+								`redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+							);
+						const memoryStore =
+							new CacheableMemory(
+								{
+									ttl: 5000,
+									lruSize: 5000,
+								},
+							);
+
+						console.log(
+							`redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+						);
+
+						return {
+							store:
+								new Keyv(
+									{
+										store:
+											redisStore,
+									},
+								),
+							stores:
+								[
+									new Keyv(
+										{
+											store:
+												memoryStore,
+										},
+									),
+									new Keyv(
+										{
+											store:
+												redisStore,
+										},
+									),
+								],
+						};
+					},
+			},
+		),
+		RMQModule.forRootAsync(
+			getRMQConfig(),
+		),
+		AuthModule,
+		AbonentsModule,
+		ProxiesModule,
+		SharedModule.register(
+			{
+				type: 'prisma',
+				global:
+					true,
+			},
+		),
+		PrometheusModule,
+		ProxiesAbonentOrchestrationModule,
+		ProjectCreedsModule,
+		SocketManagementModule,
+	],
+	controllers: [
+		AppController,
+	],
+	providers: [
+		AppService,
+		PrometheusService,
+		/*		{
+			provide:
+				APP_INTERCEPTOR,
+			useClass:
+				CacheInterceptor,
+		},*/
+	],
 })
 export class AppModule {}
